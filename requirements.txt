@@ -1,0 +1,4 @@
+pyVmomi
+pytz
+PyYAML
+python-telegram-bot

@@ -1,0 +1,10 @@
+telegram:
+    token:
+    allow_user:
+        -
+vmware:
+    server:
+    username:
+    password:
+db:
+    path: 
