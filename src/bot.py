@@ -154,6 +154,12 @@ def list_running_task(bot, update):
 
 @run_async
 @restricted
+def subscribe_all_task(bot, update):
+    subscribe_task(bot, update, ['all'])
+
+
+@run_async
+@restricted
 def subscribe_task(bot, update, args):
     bot.sendChatAction(update.message.chat_id, action=ChatAction.TYPING)
     try:
@@ -212,6 +218,12 @@ def subscribe_task(bot, update, args):
                 chat_id=update.message.chat_id,
                 text=u'Активных задач с таким идентификатором не найдено.'
             )
+
+
+@run_async
+@restricted
+def unsubscribe_all_task(bot, update):
+    unsubscribe_task(bot, update, ['all'])
 
 
 @run_async
@@ -428,7 +440,9 @@ def main():
     start_handler = CommandHandler('start', start)
     help_handler = CommandHandler('help', help)
     list_handler = CommandHandler('vmlisttask', list_running_task)
+    subscribe_all_handler = CommandHandler('vmsuball', subscribe_all_task, pass_args=False)
     subscribe_handler = CommandHandler('vmsub', subscribe_task, pass_args=True)
+    unsubscribe_all_handler = CommandHandler('vmunsuball', unsubscribe_all_task, pass_args=False)
     unsubscribe_handler = CommandHandler('vmunsub', unsubscribe_task, pass_args=True)
     list_subscription_handler = CommandHandler('vmlistsub', list_subscription)
     unknown_handler = MessageHandler(Filters.command, unknown)
@@ -436,7 +450,9 @@ def main():
     dp.add_handler(start_handler)
     dp.add_handler(help_handler)
     dp.add_handler(list_handler)
+    dp.add_handler(subscribe_all_handler)
     dp.add_handler(subscribe_handler)
+    dp.add_handler(unsubscribe_all_handler)
     dp.add_handler(unsubscribe_handler)
     dp.add_handler(list_subscription_handler)
     dp.add_handler(unknown_handler)
