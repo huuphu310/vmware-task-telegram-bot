@@ -368,9 +368,9 @@ def check_subscriptions():
                                 logger.error('%s' % ('{}({})'.format(type(exc).__name__, exc)))
                             else:
                                 if task['state'] == 'success' or task['state'] == 'error':
-                                    global sender
+                                    global updater
                                     try:
-                                        sender.send_message(
+                                        updater.bot.sendMessage(
                                             chat_id=subscription[0],
                                             text=response
                                         )
@@ -433,7 +433,6 @@ def main():
     except Exception as exc:
         logger.error('SQLite DB connection error: {}'.format(exc))
 
-    sender = Bot(token=cfg['telegram']['token'])
     updater = Updater(token=cfg['telegram']['token'])
     dp = updater.dispatcher
 

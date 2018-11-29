@@ -26,10 +26,6 @@ class vCenter(object):
             session_stub = connect.VimSessionOrientedStub(smart_stub,
                                                           connect.VimSessionOrientedStub.makeUserLoginMethod(self.username,
                                                                                                              self.password))
-            # self.SI = connect.SmartConnect(host=self.server,
-            #                                user=self.username,
-            #                                pwd=self.password,
-            #                                sslContext=self.context)
             self.SI = vim.ServiceInstance('ServiceInstance', session_stub)
 
         except Exception as exc:
@@ -97,6 +93,7 @@ class vCenter(object):
         return result
 
     def get_task(self, id):
+        result = []
         taskManager = self.SI.content.taskManager
         tasks = taskManager.CreateCollectorForTasks(vim.TaskFilterSpec(eventChainId=[int(id)]))
         tasks.ResetCollector()
@@ -108,10 +105,11 @@ class vCenter(object):
             for task_item in alltasks:
                 try:
                     item = self.format_task(task_item)
+                    result.append(item)
                 except Exception as exc:
                     raise vCenterException(exc)
             tasks.DestroyCollector()
-        return item
+        return result
 
     def check_task_exist(self, id):
         try:
