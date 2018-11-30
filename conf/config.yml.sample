@@ -2,6 +2,10 @@ telegram:
     token:
     allow_user:
         -
+    proxy:
+        url:
+        username:
+        password:
 vmware:
     server:
     username:

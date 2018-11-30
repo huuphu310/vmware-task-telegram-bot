@@ -433,9 +433,19 @@ def main():
     except Exception as exc:
         logger.error('SQLite DB connection error: {}'.format(exc))
 
-    updater = Updater(token=cfg['telegram']['token'])
-    dp = updater.dispatcher
+    if 'proxy' in cfg['telegram']:
+        REQUEST_KWARGS = {
+            'proxy_url': cfg['telegram']['proxy']['url'],
+            'urllib3_proxy_kwargs': {
+                'username': cfg['telegram']['proxy']['username'],
+                'password': cfg['telegram']['proxy']['password'],
+            }
+        }
+        updater = Updater(token=cfg['telegram']['token'], request_kwargs=REQUEST_KWARGS)
+    else:
+        updater = Updater(token=cfg['telegram']['token'])
 
+    dp = updater.dispatcher
     start_handler = CommandHandler('start', start)
     help_handler = CommandHandler('help', help)
     list_handler = CommandHandler('vmlisttask', list_running_task)
