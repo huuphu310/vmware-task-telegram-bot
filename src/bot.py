@@ -11,7 +11,6 @@ from threading import Thread
 from functools import wraps
 from vmware import vCenter
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from telegram import Bot
 from telegram.ext.dispatcher import run_async
 from telegram import ChatAction
 from pytz import timezone
