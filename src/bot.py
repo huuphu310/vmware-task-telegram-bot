@@ -310,6 +310,7 @@ def list_subscription(bot, update):
                     global vc
                     for subscription in subscriptions:
                         task = vc.get_task(subscription[1])
+                        task = task[0]
                         try:
                             response = u'ID: {}\r\nОписание: {}\r\nОбъект: {}\r\nПользователь: {}\r\nСтатус: {}\r\nПрогресс выполнения: {} %\r\nНачало работы: {}\r\n'.format(task['eventChainId'], task['descriptionId'], task['entityName'], task['username'], task['state'], task['progress'], task['startTime'].astimezone(timezone('Europe/Moscow')).strftime('%Y-%m-%d %H:%M'))
                         except Exception as exc:
