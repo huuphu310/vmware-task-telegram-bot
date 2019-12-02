@@ -350,32 +350,33 @@ def check_subscriptions():
             logger.error('%s' % ('{}({})'.format(type(error).__name__, error)))
         else:
             if subscriptions:
-                    global vc
-                    for subscription in subscriptions:
+                global vc
+                for subscription in subscriptions:
+                    try:
+                        task = vc.get_task(subscription[1])
+                        task = task[0]
+                    except Exception as exc:
+                        logger.error('%s' % ('{}({})'.format(type(exc).__name__, exc)))
+                    else:
                         try:
-                            task = vc.get_task(subscription[1])
+                            if task['state'] == 'success':
+                                response = u'Задача успешно завершена\r\nID: {}\r\nОписание: {}\r\nОбъект: {}\r\nПользователь: {}\r\nСтатус: {}\r\nНачало работы: {}\r\nОкончание работы: {}'.format(task['eventChainId'], task['descriptionId'], task['entityName'], task['username'], task['state'], task['startTime'].astimezone(timezone('Europe/Moscow')).strftime('%Y-%m-%d %H:%M'), task['completeTime'].astimezone(timezone('Europe/Moscow')).strftime('%Y-%m-%d %H:%M'))
+                                db.remove_subscription(subscription[0], subscription[1])
+                            elif task['state'] == 'error':
+                                response = u'Задача завершена с ошибкой\r\nID: {}\r\nОписание: {}\r\nОбъект: {}\r\nПользователь: {}\r\nСтатус: {}\r\nОписание ошибки: {}\r\nНачало работы: {}\r\nОкончание работы: {}'.format(task['eventChainId'], task['descriptionId'], task['entityName'], task['username'], task['state'], task['error'], task['startTime'].astimezone(timezone('Europe/Moscow')).strftime('%Y-%m-%d %H:%M'), task['completeTime'].astimezone(timezone('Europe/Moscow')).strftime('%Y-%m-%d %H:%M'))
+                                db.remove_subscription(subscription[0], subscription[1])
                         except Exception as exc:
                             logger.error('%s' % ('{}({})'.format(type(exc).__name__, exc)))
                         else:
-                            try:
-                                if task['state'] == 'success':
-                                    response = u'Задача успешно завершена\r\nID: {}\r\nОписание: {}\r\nОбъект: {}\r\nПользователь: {}\r\nСтатус: {}\r\nНачало работы: {}\r\nОкончание работы: {}'.format(task['eventChainId'], task['descriptionId'], task['entityName'], task['username'], task['state'], task['startTime'].astimezone(timezone('Europe/Moscow')).strftime('%Y-%m-%d %H:%M'), task['completeTime'].astimezone(timezone('Europe/Moscow')).strftime('%Y-%m-%d %H:%M'))
-                                    db.remove_subscription(subscription[0], subscription[1])
-                                elif task['state'] == 'error':
-                                        response = u'Задача завершена с ошибкой\r\nID: {}\r\nОписание: {}\r\nОбъект: {}\r\nПользователь: {}\r\nСтатус: {}\r\Описание ошибки: {}\r\nНачало работы: {}\r\nОкончание работы: {}'.format(task['eventChainId'], task['descriptionId'], task['entityName'], task['username'], task['state'], task['error'], task['startTime'].astimezone(timezone('Europe/Moscow')).strftime('%Y-%m-%d %H:%M'), task['completeTime'].astimezone(timezone('Europe/Moscow')).strftime('%Y-%m-%d %H:%M'))
-                                        db.remove_subscription(subscription[0], subscription[1])
-                            except Exception as exc:
-                                logger.error('%s' % ('{}({})'.format(type(exc).__name__, exc)))
-                            else:
-                                if task['state'] == 'success' or task['state'] == 'error':
-                                    global updater
-                                    try:
-                                        updater.bot.sendMessage(
-                                            chat_id=subscription[0],
-                                            text=response
-                                        )
-                                    except Exception as exc:
-                                        logger.error('%s' % ('{}({})'.format(type(exc).__name__, exc)))
+                            if task['state'] == 'success' or task['state'] == 'error':
+                                global updater
+                                try:
+                                    updater.bot.sendMessage(
+                                        chat_id=subscription[0],
+                                        text=response
+                                    )
+                                except Exception as exc:
+                                    logger.error('%s' % ('{}({})'.format(type(exc).__name__, exc)))
 
 
 def has_live_threads(threads):
