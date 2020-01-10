@@ -52,5 +52,6 @@ Temporary Items
 .apdisk
 command.txt
 config.yml
+*.db
 
 .vscode/

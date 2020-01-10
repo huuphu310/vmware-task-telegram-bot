@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 here = path.abspath(path.dirname(__file__))
 
-with open('src/__init__.py') as f:
+with open('vmware_task_telegram_bot/__init__.py') as f:
     for line in f:
         if line.find('__version__') >= 0:
             version = line.split("=")[1].strip()
@@ -30,7 +30,7 @@ setup(
     author_email='valeksandrov@me.com',
     url='https://github.com/verdel/vmware-task-telegram-bot',
     packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
-    entry_points={'console_scripts': ['vmware_task_bot=src.bot:main'], },
+    entry_points={'console_scripts': ['vmware_task_bot=vmware_task_telegram_bot.bot:main'], },
     include_package_data=True,
     install_requires=requirements,
     keywords='telegram bot vmware task',
@@ -41,11 +41,6 @@ setup(
         'Intended Audience :: System Administrators',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
-        "Programming Language :: Python :: 2",
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5'
+        'Programming Language :: Python :: 3'
     ]
 )

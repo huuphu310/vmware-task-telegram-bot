@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 from pyVmomi import vim
-from pyVim import connect
+from pyVim.connect import SmartConnectNoSSL, Disconnect
 import atexit
-import requests
-import ssl
 
 
 class vCenterException(RuntimeError):
@@ -16,23 +14,18 @@ class vCenter(object):
         self.username = username
         self.password = password
         self.SI = None
-        requests.packages.urllib3.disable_warnings()
-        self.context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
-        self.context.verify_mode = ssl.CERT_NONE
+
         try:
-            smart_stub = connect.SmartStubAdapter(host=self.server,
-                                                  sslContext=self.context,
-                                                  connectionPoolTimeout=0)
-            session_stub = connect.VimSessionOrientedStub(smart_stub,
-                                                          connect.VimSessionOrientedStub.makeUserLoginMethod(self.username,
-                                                                                                             self.password))
-            self.SI = vim.ServiceInstance('ServiceInstance', session_stub)
+            self.SI = SmartConnectNoSSL(host=self.server,
+                                        user=self.username,
+                                        pwd=self.password)
+            atexit.register(Disconnect, self.SI)
+        except IOError as e:
+            vCenterException(e)
+        pass
 
-        except Exception as exc:
-            raise vCenterException(exc)
-
-        else:
-            atexit.register(connect.Disconnect, self.SI)
+        if not self.SI:
+            vCenterException("Unable to connect to host with supplied info.")
 
     def format_task(self, task_info):
         if task_info.state == 'success':
@@ -71,6 +64,28 @@ class vCenter(object):
                       'completeTime': task_info.completeTime,
                       'username': task_info.reason.userName}
 
+        return result
+
+    def format_alarm(self, alarm):
+        result = {'entityName': alarm.entity.name,
+                  'description': alarm.alarm.info.name,
+                  'status': alarm.overallStatus,
+                  'time': alarm.time}
+        return result
+
+    def list_active_alarm(self):
+        result = []
+        try:
+            alarms = self.SI.RetrieveContent().rootFolder.triggeredAlarmState
+        except Exception as exc:
+            raise vCenterException(exc)
+        else:
+            for alarm in alarms:
+                try:
+                    item = self.format_alarm(alarm)
+                    result.append(item)
+                except Exception as exc:
+                    raise vCenterException(exc)
         return result
 
     def list_running_task(self):

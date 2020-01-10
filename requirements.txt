@@ -1,4 +1,7 @@
+emoji
 pyVmomi
 pytz
 PyYAML
+PySocks
 python-telegram-bot
+socks
