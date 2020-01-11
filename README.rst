@@ -1,6 +1,6 @@
-==========================================================================================
-vmware-task-telegram-bot - Telegram bot to notify about completion of VMware vCenter tasks
-==========================================================================================
+==================================================================================================================================
+vmware-task-telegram-bot - Telegram bot to notify about completion of VMware vCenter tasks and get information about active alarms
+==================================================================================================================================
 
 
 What is this?
@@ -32,7 +32,6 @@ a system ``bin`` directory
 
 Usage
 -----
-::
     usage: vmware_task_bot [-h] [--debug]
 
     optional arguments:

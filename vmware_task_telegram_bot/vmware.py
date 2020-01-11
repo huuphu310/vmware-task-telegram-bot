@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from pyVmomi import vim
-from pyVim.connect import SmartConnectNoSSL, Disconnect
+from pyVim import connect
 import atexit
+import requests
+import ssl
 
 
 class vCenterException(RuntimeError):
@@ -15,14 +17,23 @@ class vCenter(object):
         self.password = password
         self.SI = None
 
+        requests.packages.urllib3.disable_warnings()
+        self.context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+        self.context.verify_mode = ssl.CERT_NONE
         try:
-            self.SI = SmartConnectNoSSL(host=self.server,
-                                        user=self.username,
-                                        pwd=self.password)
-            atexit.register(Disconnect, self.SI)
-        except IOError as e:
-            vCenterException(e)
-        pass
+            smart_stub = connect.SmartStubAdapter(host=self.server,
+                                                  sslContext=self.context,
+                                                  connectionPoolTimeout=0)
+            session_stub = connect.VimSessionOrientedStub(smart_stub,
+                                                          connect.VimSessionOrientedStub.makeUserLoginMethod(self.username,
+                                                                                                             self.password))
+            self.SI = vim.ServiceInstance('ServiceInstance', session_stub)
+
+        except Exception as exc:
+            raise vCenterException(exc)
+
+        else:
+            atexit.register(connect.Disconnect, self.SI)
 
         if not self.SI:
             vCenterException("Unable to connect to host with supplied info.")
