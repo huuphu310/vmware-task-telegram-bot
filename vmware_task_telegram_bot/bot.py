@@ -366,7 +366,7 @@ def check_subscriptions():
 
 
 def has_live_threads(threads):
-    return True in [t.isAlive() for t in threads]
+    return True in [t.is_alive() for t in threads]
 
 
 def start_bot():
@@ -465,7 +465,7 @@ def main():
 
     while has_live_threads(threads):
         try:
-            [t.join(1) for t in threads if t is not None and t.isAlive()]
+            [t.join(1) for t in threads if t is not None and t.is_alive()]
         except KeyboardInterrupt:
             t2.kill_received = True
             try:
