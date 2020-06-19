@@ -1,0 +1,18 @@
+telegram:
+    token: {{ TELEGRAM_TOKEN }}
+    allow_user: 
+{% for item in TELEGRAM_USER|env_json %}
+        - {{ item }}
+{% endfor %}
+{% if TELEGRAM_PROXY is defined %}
+    proxy:
+        url: '{{ TELEGRAM_PROXY_URL }}'
+        username: {{ TELEGRAM_PROXY_USERNAME }}
+        password: {{ TELEGRAM_PROXY_PASSWORD }}
+{% endif %}
+vmware:
+    server: {{ VMWARE_SERVER }}
+    username: {{ VMWARE_USER }}
+    password: {{ VMWARE_PASSWORD }}
+db:
+    path: {{ DB_PATH }}

@@ -1,0 +1,2 @@
+#!/usr/bin/with-contenv sh
+vmware_task_bot -c /opt/vmware-task-telegram-bot/config.yml
