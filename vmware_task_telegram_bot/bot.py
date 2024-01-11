@@ -11,7 +11,6 @@ from functools import wraps
 from os import path
 from pytz import timezone
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from telegram.ext.dispatcher import run_async
 from telegram import ChatAction
 from threading import Thread
 from vmware_task_telegram_bot.db import DB
@@ -75,42 +74,41 @@ def restricted(func):
 
         if user_id not in cfg['telegram']['allow_user']:
             context.bot.sendMessage(chat_id=update.message.chat_id,
-                                    text=u'Ой! Вы не авторизованы для этого типа запросов.')
+                                    text=u'Oh! You are not authorized for this type of request.')
             return
         return func(update, context, *args, **kwargs)
     return wrapped
 
 
-@run_async
-def error(update, exc):
+
+async def error(update, exc):
     global logger
     logger.error('Update "%s" caused error "%s"' % (update, '{}({})'.format(type(exc).__name__, exc)))
 
 
-@run_async
 @restricted
-def start(update, context):
+async def start(update, context):
     context.bot.sendMessage(chat_id=update.message.chat_id,
-                            text=u'Добро пожаловать.')
+                            text=u'Welcome.')
 
 
-@run_async
+
 @restricted
-def help(update, context):
+async def help(update, context):
     context.bot.sendMessage(chat_id=update.message.chat_id,
-                            text=u'vm-list-task - показать активные задачи')
+                            text=u'vm-list-task - show active tasks')
 
 
-@run_async
+
 @restricted
-def unknown(update, context):
+async def unknown(update, context):
     context.bot.sendMessage(chat_id=update.message.chat_id,
-                            text=u'Простите, я не поддерживаю этот тип запросов.')
+                            text=u'Sorry, I dont support this type of request.')
 
 
-@run_async
+
 @restricted
-def list_running_task(update, context):
+async def list_running_task(update, context):
     context.bot.sendChatAction(update.message.chat_id, action=ChatAction.TYPING)
     try:
         global vc
@@ -118,27 +116,27 @@ def list_running_task(update, context):
     except Exception as exc:
         error(update, exc)
         context.bot.sendMessage(chat_id=update.message.chat_id,
-                                text=u'Ой! Произошла ошибка. Попробуйте еще раз позже.')
+                                text=u'Oh! An error has occurred. Please try again later.')
     else:
         if tasks:
             for task in tasks:
                 try:
-                    response = u'ID: {}\r\nОписание: {}\r\nОбъект: {}\r\nПользователь: {}\r\nСтатус: {}\r\nПроцент выполнения: {}\r\nНачало работы: {}\r\n'.format(task['eventChainId'], task['descriptionId'], task['entityName'], task['username'], task['state'], task['progress'], task['startTime'].astimezone(timezone('Europe/Moscow')).strftime('%Y-%m-%d %H:%M'))
+                    response = u'ID: {}\r\nDescription: {}\r\nAn object: {}\r\nUser: {}\r\nStatus: {}\r\nCompletion percentage: {}\r\nBeginning of work: {}\r\n'.format(task['eventChainId'], task['descriptionId'], task['entityName'], task['username'], task['state'], task['progress'], task['startTime'].astimezone(timezone('Asia/Ho_Chi_Minh')).strftime('%Y-%m-%d %H:%M'))
                 except Exception as exc:
                     error(update, exc)
                     context.bot.sendMessage(chat_id=update.message.chat_id,
-                                            text=u'Ой! Произошла ошибка. Попробуйте еще раз позже.')
+                                            text=u'Oh! An error has occurred. Please try again later.')
 
                 context.bot.sendMessage(chat_id=update.message.chat_id,
                                         text=response)
         else:
             context.bot.sendMessage(chat_id=update.message.chat_id,
-                                    text=u'Активных задач нет.')
+                                    text=u'There are no active tasks.')
 
 
-@run_async
+
 @restricted
-def list_active_alarm(update, context):
+async def list_active_alarm(update, context):
     alarm_status_emoji = {'gray': emoji.emojize(':gray_circle:'),
                           'green': emoji.emojize(':green_circle:'),
                           'yellow': emoji.emojize(':yellow_circle:'),
@@ -150,37 +148,37 @@ def list_active_alarm(update, context):
     except Exception as exc:
         error(update, exc)
         context.bot.sendMessage(chat_id=update.message.chat_id,
-                                text=u'Ой! Произошла ошибка. Попробуйте еще раз позже.')
+                                text=u'Oh! An error has occurred. Please try again later.')
     else:
         if alarms:
             for alarm in sorted(alarms, key=lambda i: i['time'], reverse=True):
                 try:
-                    response = u'Описание: {}\r\nОбъект: {}\r\nВажность: {}\r\nВремя: {}\r\n'.format(alarm['description'],
+                    response = u'Description: {}\r\nAn object: {}\r\nImportance: {}\r\nTime: {}\r\n'.format(alarm['description'],
                                                                                                      alarm['entityName'],
                                                                                                      alarm_status_emoji[alarm['status']],
-                                                                                                     alarm['time'].astimezone(timezone('Europe/Moscow')).strftime('%Y-%m-%d %H:%M'))
+                                                                                                     alarm['time'].astimezone(timezone('Asia/Ho_Chi_Minh')).strftime('%Y-%m-%d %H:%M'))
                 except Exception as exc:
                     error(update, exc)
                     context.bot.sendMessage(chat_id=update.message.chat_id,
-                                            text=u'Ой! Произошла ошибка. Попробуйте еще раз позже.')
+                                            text=u'Oh! An error has occurred. Please try again later.')
 
                 context.bot.sendMessage(chat_id=update.message.chat_id,
                                         text=response)
         else:
             context.bot.sendMessage(chat_id=update.message.chat_id,
-                                    text=u'Активных триггеров нет.')
+                                    text=u'There are no active triggers.')
 
 
-@run_async
+
 @restricted
-def subscribe_all_task(update, context):
+async def subscribe_all_task(update, context):
     context.args.append('all')
     subscribe_task(update, context)
 
 
-@run_async
+
 @restricted
-def subscribe_task(update, context):
+async def subscribe_task(update, context):
     context.bot.sendChatAction(update.message.chat_id, action=ChatAction.TYPING)
     try:
         global vc
@@ -192,7 +190,7 @@ def subscribe_task(update, context):
     except Exception as exc:
         error(update, exc)
         context.bot.sendMessage(chat_id=update.message.chat_id,
-                                text=u'Ой! Произошла ошибка. Попробуйте еще раз позже.')
+                                text=u'Oh! An error has occurred. Try again later.')
 
     else:
         if tasks:
@@ -209,35 +207,35 @@ def subscribe_task(update, context):
                                 new_subscription_flag = True
                                 db.add_subscription(update.message.chat_id, task['eventChainId'])
                                 context.bot.sendMessage(chat_id=update.message.chat_id,
-                                                        text=u'Вы подписаны на оповещения об окончании задачи {}.'.format(task['eventChainId']))
+                                                        text=u'You are subscribed to task completion alerts {}.'.format(task['eventChainId']))
                         if not new_subscription_flag:
                             context.bot.sendMessage(chat_id=update.message.chat_id,
-                                                    text=u'Вы уже подписаны на оповещения об окончании всех текущих активных задач.')
+                                                    text=u'You are already subscribed to notifications about the completion of all currently active tasks.')
 
                     else:
                         db.add_subscription(update.message.chat_id, context.args[0])
                         context.bot.sendMessage(chat_id=update.message.chat_id,
-                                                text=u'Вы подписаны на оповещения об окончании задачи {}.'.format(context.args[0]))
+                                                text=u'You are subscribed to task completion notifications {}.'.format(context.args[0]))
 
                 except Exception as exc:
                     error(update, exc)
                     context.bot.sendMessage(chat_id=update.message.chat_id,
-                                            text=u'Ой! Произошла ошибка. Попробуйте еще раз позже.')
+                                            text=u'Oh! An error has occurred. Please try again later.')
         else:
             context.bot.sendMessage(chat_id=update.message.chat_id,
-                                    text=u'Активных задач с таким идентификатором не найдено.')
+                                    text=u'No active tasks with this ID were found.')
 
 
-@run_async
+
 @restricted
-def unsubscribe_all_task(update, context):
+async def unsubscribe_all_task(update, context):
     context.args.append('all')
     unsubscribe_task(update, context)
 
 
-@run_async
+
 @restricted
-def unsubscribe_task(update, context):
+async def unsubscribe_task(update, context):
     context.bot.sendChatAction(update.message.chat_id, action=ChatAction.TYPING)
     try:
         global vc
@@ -248,7 +246,7 @@ def unsubscribe_task(update, context):
     except Exception as exc:
         error(update, exc)
         context.bot.sendMessage(chat_id=update.message.chat_id,
-                                text=u'Ой! Произошла ошибка. Попробуйте еще раз позже.')
+                                text=u'Oh! An error has occurred. Please try again later.')
     else:
         if tasks:
             try:
@@ -261,31 +259,31 @@ def unsubscribe_task(update, context):
                         if db.get_subsciption_by_uid(update.message.chat_id):
                             db.remove_subscription_by_uid(update.message.chat_id)
                             context.bot.sendMessage(chat_id=update.message.chat_id,
-                                                    text=u'Все подписки на оповещения об окончании задач отменены.')
+                                                    text=u'All subscriptions to task completion notifications have been cancelled.')
                         else:
                             context.bot.sendMessage(chat_id=update.message.chat_id,
-                                                    text=u'Вы не подписаны на оповещения об окончании задач.')
+                                                    text=u'You are not subscribed to task completion notifications.')
                     else:
                         if db.get_subsciption(update.message.chat_id, context.args[0]):
                             db.remove_subscription(update.message.chat_id, context.args[0])
                             context.bot.sendMessage(chat_id=update.message.chat_id,
-                                                    text=u'Подписка на оповещения об окончании задачи {} отменена.'.format(context.args[0]))
+                                                    text=u'You have unsubscribed from task completion notifications {}.'.format(context.args[0]))
                         else:
                             context.bot.sendMessage(chat_id=update.message.chat_id,
-                                                    text=u'Вы не подписаны на оповещения об окончании задачи {}.'.format(context.args[0]))
+                                                    text=u'You are not subscribed to task completion notifications {}.'.format(context.args[0]))
 
                 except Exception as exc:
                     error(update, exc)
                     context.bot.sendMessage(chat_id=update.message.chat_id,
-                                            text=u'Ой! Произошла ошибка. Попробуйте еще раз позже.')
+                                            text=u'Oh! An error has occurred. Please try again later.')
         else:
             context.bot.sendMessage(chat_id=update.message.chat_id,
-                                    text=u'Активных задач с таким идентификатором не найдено.')
+                                    text=u'No active tasks with this ID were found.')
 
 
-@run_async
+
 @restricted
-def list_subscription(update, context):
+async def list_subscription(update, context):
     context.bot.sendChatAction(update.message.chat_id, action=ChatAction.TYPING)
     try:
         db = DB(cfg['db']['path'])
@@ -297,7 +295,7 @@ def list_subscription(update, context):
         except Exception as exc:
             error(update, exc)
             context.bot.sendMessage(chat_id=update.message.chat_id,
-                                    text=u'Ой! Произошла ошибка. Попробуйте еще раз позже.')
+                                    text=u'Oh! An error has occurred. Please try again later.')
         else:
             if subscriptions:
                 try:
@@ -306,21 +304,21 @@ def list_subscription(update, context):
                         task = vc.get_task(subscription[1])
                         task = task[0]
                         try:
-                            response = u'ID: {}\r\nОписание: {}\r\nОбъект: {}\r\nПользователь: {}\r\nСтатус: {}\r\nПрогресс выполнения: {} %\r\nНачало работы: {}\r\n'.format(task['eventChainId'], task['descriptionId'], task['entityName'], task['username'], task['state'], task['progress'], task['startTime'].astimezone(timezone('Europe/Moscow')).strftime('%Y-%m-%d %H:%M'))
+                            response = u'ID: {}\r\nDescription: {}\r\nAn object: {}\r\nUser: {}\r\nStatus: {}\r\nExecution progress: {} %\r\nBeginning of work: {}\r\n'.format(task['eventChainId'], task['descriptionId'], task['entityName'], task['username'], task['state'], task['progress'], task['startTime'].astimezone(timezone('Asia/Ho_Chi_Minh')).strftime('%Y-%m-%d %H:%M'))
                         except Exception as exc:
                             error(update, exc)
                             context.bot.sendMessage(chat_id=update.message.chat_id,
-                                                    text=u'Ой! Произошла ошибка. Попробуйте еще раз позже.')
+                                                    text=u'Oh! An error has occurred. Please try again later.')
                         else:
                             context.bot.sendMessage(chat_id=update.message.chat_id,
                                                     text=response)
                 except Exception as exc:
                     error(update, exc)
                     context.bot.sendMessage(chat_id=update.message.chat_id,
-                                            text=u'Ой! Произошла ошибка. Попробуйте еще раз позже.')
+                                            text=u'Oh! An error has occurred. Please try again later.')
             else:
                 context.bot.sendMessage(chat_id=update.message.chat_id,
-                                        text=u'У вас нет активных подписок.')
+                                        text=u'You have no active subscriptions.')
 
 
 def check_subscriptions():
@@ -346,10 +344,10 @@ def check_subscriptions():
                     else:
                         try:
                             if task['state'] == 'success':
-                                response = u'Задача успешно завершена\r\nID: {}\r\nОписание: {}\r\nОбъект: {}\r\nПользователь: {}\r\nСтатус: {}\r\nНачало работы: {}\r\nОкончание работы: {}'.format(task['eventChainId'], task['descriptionId'], task['entityName'], task['username'], task['state'], task['startTime'].astimezone(timezone('Europe/Moscow')).strftime('%Y-%m-%d %H:%M'), task['completeTime'].astimezone(timezone('Europe/Moscow')).strftime('%Y-%m-%d %H:%M'))
+                                response = u'Task completed successfully\r\nID: {}\r\nDescription: {}\r\nAn object: {}\r\nUser: {}\r\nStatus: {}\r\nBeginning of work: {}\r\nEnd of work: {}'.format(task['eventChainId'], task['descriptionId'], task['entityName'], task['username'], task['state'], task['startTime'].astimezone(timezone('Asia/Ho_Chi_Minh')).strftime('%Y-%m-%d %H:%M'), task['completeTime'].astimezone(timezone('Asia/Ho_Chi_Minh')).strftime('%Y-%m-%d %H:%M'))
                                 db.remove_subscription(subscription[0], subscription[1])
                             elif task['state'] == 'error':
-                                response = u'Задача завершена с ошибкой\r\nID: {}\r\nОписание: {}\r\nОбъект: {}\r\nПользователь: {}\r\nСтатус: {}\r\nОписание ошибки: {}\r\nНачало работы: {}\r\nОкончание работы: {}'.format(task['eventChainId'], task['descriptionId'], task['entityName'], task['username'], task['state'], task['error'], task['startTime'].astimezone(timezone('Europe/Moscow')).strftime('%Y-%m-%d %H:%M'), task['completeTime'].astimezone(timezone('Europe/Moscow')).strftime('%Y-%m-%d %H:%M'))
+                                response = u'Task completed successfully\r\nID: {}\r\nDescription: {}\r\nAn object: {}\r\nUser: {}\r\nStatus: {}\r\nDescription of the error: {}\r\nBeginning of work: {}\r\nEnd of work: {}'.format(task['eventChainId'], task['descriptionId'], task['entityName'], task['username'], task['state'], task['error'], task['startTime'].astimezone(timezone('Asia/Ho_Chi_Minh')).strftime('%Y-%m-%d %H:%M'), task['completeTime'].astimezone(timezone('Asia/Ho_Chi_Minh')).strftime('%Y-%m-%d %H:%M'))
                                 db.remove_subscription(subscription[0], subscription[1])
                         except Exception as exc:
                             logger.error('%s' % ('{}({})'.format(type(exc).__name__, exc)))

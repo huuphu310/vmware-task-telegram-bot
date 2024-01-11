@@ -3,6 +3,6 @@ pyVmomi
 pytz
 PyYAML
 PySocks
-python-telegram-bot
+python-telegram-bot==13.15
 requests
 socks
